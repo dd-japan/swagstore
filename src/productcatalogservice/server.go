@@ -49,6 +49,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+
 )
 
 var (
@@ -275,7 +276,13 @@ func (p *productCatalog) ListProducts(context.Context, *pb.Empty) (*pb.ListProdu
 }
 
 func (p *productCatalog) GetProduct(ctx context.Context, req *pb.GetProductRequest) (*pb.Product, error) {
+    startTime := time.Now() // 開始時刻を記録
 	time.Sleep(extraLatency)
+    // 特定のプロダクトID（例： "2ZYFJ3GM2N"）がリクエストされた場合にのみスリープ
+    if req.Id == "2ZYFJ3GM2N" {
+        time.Sleep(11 * time.Second)
+    }
+
 	var found *pb.Product
 	for i := 0; i < len(parseCatalog()); i++ {
 		if req.Id == parseCatalog()[i].Id {
@@ -283,8 +290,18 @@ func (p *productCatalog) GetProduct(ctx context.Context, req *pb.GetProductReque
 		}
 	}
 	if found == nil {
+	    duration := time.Since(startTime) // 時間差を計算
+        log.Infof("Request for product ID %s not found, Duration: %v", req.Id, duration)
 		return nil, status.Errorf(codes.NotFound, "no product with ID %s", req.Id)
 	}
+    duration := time.Since(startTime) // 時間差を計算
+    span, ok := tracer.SpanFromContext(ctx)
+    if !ok {
+        log.Infof("Returning product: ID=%s, Name=%s", found.Id, found.Name, duration)
+    } else {
+        log.Infof("Returning product: ID=%s, Name=%s, Duration=%v dd.trace_id=%v, dd.span_id=%v", found.Id, found.Name, duration, span.Context().TraceID(), span.Context().SpanID())
+        span.SetTag("product_id", req.Id)
+    }
 	return found, nil
 }
 

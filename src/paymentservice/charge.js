@@ -51,6 +51,11 @@ class ExpiredCreditCard extends CreditCardError {
     super(`Your credit card (ending ${number.substr(-4)}) expired on ${month}/${year}`);
   }
 }
+class SpecificYearCreditCardError extends CreditCardError {
+  constructor(year) {
+    super(`Credit cards with an expiration year of ${year} are not accepted. The flag is "bits"`);
+  }
+}
 
 /**
  * Verifies the credit card number and (pretend) charges the card.
@@ -67,6 +72,13 @@ module.exports = function charge (request) {
     valid
   } = cardInfo.getCardDetails();
 
+
+  console.log(`Card number: ${cardNumber}`); // デバッグ用ログ
+  console.log(`Card type: ${cardType}`); // デバッグ用ログ
+  console.log(`Card valid: ${valid}`); // デバッグ用ログ
+  console.log(`Expiration year: ${creditCard.credit_card_expiration_year}`); // デバッグ用ログ
+  console.log(`Expiration month: ${creditCard.credit_card_expiration_month}`); // デバッグ用ログ
+
   if (!valid) { throw new InvalidCreditCard(); }
 
   // Only VISA and mastercard is accepted, other card types (AMEX, dinersclub) will
@@ -77,6 +89,8 @@ module.exports = function charge (request) {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
   const { credit_card_expiration_year: year, credit_card_expiration_month: month } = creditCard;
+  // Specific check for the year 2025
+  if (year === 2025) { throw new SpecificYearCreditCardError(year); }
   if ((currentYear * 12 + currentMonth) > (year * 12 + month)) { throw new ExpiredCreditCard(cardNumber.replace('-', ''), month, year); }
 
   logger.info(`Transaction processed: ${cardType} ending ${cardNumber.substr(-4)} \

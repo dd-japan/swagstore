@@ -32,6 +32,8 @@ spec:
         tags.datadoghq.com/service: "cartservice"
         tags.datadoghq.com/version: "0.5.0"
         admission.datadoghq.com/enabled: "true"
+      #annotations:
+      #  admission.datadoghq.com/dotnet-lib.version: "latest"
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5

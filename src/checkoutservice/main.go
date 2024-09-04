@@ -169,6 +169,7 @@ func main() {
 	log.Infof("starting to listen on tcp: %q", lis.Addr().String())
 	err = srv.Serve(lis)
 	log.Fatal(err)
+
 }
 
 func initStats() {
@@ -265,7 +266,12 @@ func (cs *checkoutService) Watch(req *healthpb.HealthCheckRequest, ws healthpb.H
 }
 
 func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderRequest) (*pb.PlaceOrderResponse, error) {
-	log.Infof("[PlaceOrder] user_id=%q user_currency=%q", req.UserId, req.UserCurrency)
+    span, _ := tracer.StartSpanFromContext(ctx, "PlaceOrder")
+    defer span.Finish()
+
+    traceID := span.Context().TraceID()
+	log.Infof("[PlaceOrder] user_id=%q user_currency=%q dd.trace_id=%d", req.UserId, req.UserCurrency, traceID)
+
 
 	orderID, err := uuid.NewUUID()
 	if err != nil {
