@@ -34,36 +34,36 @@ spec:
         admission.datadoghq.com/enabled: "true"
       annotations:
         admission.datadoghq.com/java-lib.version: "latest"
-        ad.datadoghq.com/server.checks: |
-          {
-            "jmx": {
-              "init_config": {
-                "is_jmx": true,
-                "collect_default_metrics": true,
-                "conf": [{
-                  "include": {
-                    "domain": "java.lang",
-                    "type": "MemoryPool",
-                    "attribute": {
-                      "Usage.used": {
-                        "metric_type": "gauge",
-                        "alias": "jvm.memory_usage"
-                        },
-                      "Usage.committed": {
-                        "metric_type": "gauge",
-                        "alias": "jvm.memory_committed"
-                        }
-                      }
-                    }
-                }]
-              },
-              "instances": [{
-                "host": "%%host%%",
-                "port": "8081",
-                "tags": ["pod_name:%%kube_pod_name%%"]
-              }]
-            }
-          }
+        #ad.datadoghq.com/server.checks: |
+        #  {
+        #    "jmx": {
+        #      "init_config": {
+        #        "is_jmx": true,
+        #        "collect_default_metrics": true,
+        #        "conf": [{
+        #          "include": {
+        #            "domain": "java.lang",
+        #            "type": "MemoryPool",
+        #            "attribute": {
+        #              "Usage.used": {
+        #                "metric_type": "gauge",
+        #                "alias": "jvm.memory_usage"
+        #                },
+        #              "Usage.committed": {
+        #                "metric_type": "gauge",
+        #                "alias": "jvm.memory_committed"
+        #                }
+        #              }
+        #            }
+        #        }]
+        #      },
+        #      "instances": [{
+        #        "host": "%%host%%",
+        #        "port": "8081",
+        #        "tags": ["pod_name:%%kube_pod_name%%"]
+        #      }]
+        #    }
+        #  }
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
@@ -99,14 +99,16 @@ spec:
           value: "true"
         - name: DD_LOGS_INJECTION
           value: "true"
-        - name: DD_TRACE_SAMPLE_RATE
-          value: "1"
+        #- name: DD_TRACE_SAMPLE_RATE
+        #  value: "1"
         - name: DD_INVENTORIES_CONFIGURATION_ENABLED
           value: "true"
         - name: POD_IP
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: DD_TRACE_SAMPLING_RULES
+          value: '[{"service": "*", "sample_rate": 0.2}]'
         - name: JAVA_OPTS
           value: >-
               -Dcom.sun.management.jmxremote
@@ -132,6 +134,16 @@ spec:
           limits:
             cpu: 300m
             memory: 300Mi
+        #volumeMounts:
+        #  - name: jmx-config-map
+        #    mountPath: /etc/datadog-agent/conf.d/jmx.d
+      #volumes:
+      #  - name: jmx-config-map
+      #    configMap:
+      #      name: jmx-config-map
+      #      items:
+      #        - key: jmx-config
+      #          path: conf.yaml
         # readinessProbe:
         #   initialDelaySeconds: 40
         #   periodSeconds: 15

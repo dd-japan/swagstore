@@ -11,10 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+const tracer = require('dd-trace').init();
 const cardValidator = require('simple-card-validator');
 const { v4: uuidv4 } = require('uuid');
 const pino = require('pino');
+const formats = require('dd-trace/ext/formats');
 
 const logger = pino({
   name: 'paymentservice-charge',
@@ -71,13 +72,15 @@ module.exports = function charge (request) {
     card_type: cardType,
     valid
   } = cardInfo.getCardDetails();
+  const span = tracer.scope().active();
+  const traceId = span ? span.context().toTraceId() : 'no-trace';
+  const spanId = span ? span.context().toSpanId() : 'no-span';
 
-
-  console.log(`Card number: ${cardNumber}`); // デバッグ用ログ
-  console.log(`Card type: ${cardType}`); // デバッグ用ログ
-  console.log(`Card valid: ${valid}`); // デバッグ用ログ
-  console.log(`Expiration year: ${creditCard.credit_card_expiration_year}`); // デバッグ用ログ
-  console.log(`Expiration month: ${creditCard.credit_card_expiration_month}`); // デバッグ用ログ
+  console.log(`[Trace ID: ${traceId}, Span ID: ${spanId}] Card number: ${cardNumber}`); // デバッグ用ログ
+  //console.log(`Card type: ${cardType}`); // デバッグ用ログ
+  //console.log(`Card valid: ${valid}`); // デバッグ用ログ
+  //console.log(`Expiration year: ${creditCard.credit_card_expiration_year}`); // デバッグ用ログ
+  //console.log(`Expiration month: ${creditCard.credit_card_expiration_month}`); // デバッグ用ログ
 
   if (!valid) { throw new InvalidCreditCard(); }
 

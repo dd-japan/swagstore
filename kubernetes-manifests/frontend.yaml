@@ -100,8 +100,8 @@ spec:
             value: "true"
           - name: DD_LOGS_INJECTION
             value: "true"
-          - name: DD_TRACE_SAMPLE_RATE
-            value: "1"
+          - name: DD_TRACE_SAMPLING_RULES
+            value: '[{"service": "frontend", "sample_rate": 0.9}]'
           resources:
             requests:
               cpu: 100m

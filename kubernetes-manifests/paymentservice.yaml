@@ -34,6 +34,8 @@ spec:
         admission.datadoghq.com/enabled: "true"
       annotations:
         admission.datadoghq.com/js-lib.version: "latest"
+        ad.datadoghq.com/tags: '{"git.commit.sha": "ba963843f0b5d1c540ddb6d07103c03a7e2fd7c9",
+                 "git.repository_url": "https://github.com/dd-japan/swagstore", "git.branch": "prototype-for-kddi"}'
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5

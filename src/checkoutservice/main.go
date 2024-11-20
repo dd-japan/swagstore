@@ -316,7 +316,7 @@ func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderReq
 	if err := cs.sendOrderConfirmation(ctx, req.Email, orderResult); err != nil {
 		log.Warnf("failed to send order confirmation to %q: %+v", req.Email, err)
 	} else {
-		log.Infof("order confirmation email sent to %q", req.Email)
+		log.Infof("order confirmation email sent to %q dd.trace_id=%d", req.Email, traceID)
 	}
 	resp := &pb.PlaceOrderResponse{Order: orderResult}
 	return resp, nil
