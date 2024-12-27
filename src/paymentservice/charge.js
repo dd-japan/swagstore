@@ -23,6 +23,11 @@ const logger = pino({
   formatters: {
     level (logLevelString, logLevelNum) {
       return { severity: logLevelString }
+    },
+    log(obj) {
+          // ログの前にタイムスタンプを追加
+          obj.timestamp = new Date().toISOString();  // ISO形式のタイムスタンプ
+          return obj;
     }
   }
 });
@@ -76,7 +81,7 @@ module.exports = function charge (request) {
   const traceId = span ? span.context().toTraceId() : 'no-trace';
   const spanId = span ? span.context().toSpanId() : 'no-span';
 
-  console.log(`[Trace ID: ${traceId}, Span ID: ${spanId}] Card number: ${cardNumber}`); // デバッグ用ログ
+  //console.log(`[Trace ID: ${traceId}, Span ID: ${spanId}] Card number: ${cardNumber}`); // デバッグ用ログ
   //console.log(`Card type: ${cardType}`); // デバッグ用ログ
   //console.log(`Card valid: ${valid}`); // デバッグ用ログ
   //console.log(`Expiration year: ${creditCard.credit_card_expiration_year}`); // デバッグ用ログ
@@ -93,11 +98,13 @@ module.exports = function charge (request) {
   const currentYear = new Date().getFullYear();
   const { credit_card_expiration_year: year, credit_card_expiration_month: month } = creditCard;
   // Specific check for the year 2025
-  if (year === 2025) { throw new SpecificYearCreditCardError(year); }
+  if (year === 2025) {
+   logger.error(`SpecificYearCreditCardError: Credit cards with an expiration year of ${year} are not accepted. The flag is "bits" Trace ID: ${traceId}`);
+   throw new SpecificYearCreditCardError(year); }
   if ((currentYear * 12 + currentMonth) > (year * 12 + month)) { throw new ExpiredCreditCard(cardNumber.replace('-', ''), month, year); }
 
-  logger.info(`Transaction processed: ${cardType} ending ${cardNumber.substr(-4)} \
-    Amount: ${amount.currency_code}${amount.units}.${amount.nanos}`);
+  logger.info(`Transaction processed: ${cardType} ending ${cardNumber.substr(-4)} expiration year ${year} \
+    Amount: ${amount.currency_code}${amount.units}.${amount.nanos} Trace ID: ${traceId}`);
 
   return { transaction_id: uuidv4() };
 };
