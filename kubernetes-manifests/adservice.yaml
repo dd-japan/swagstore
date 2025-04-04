@@ -34,36 +34,53 @@ spec:
         admission.datadoghq.com/enabled: "true"
       annotations:
         admission.datadoghq.com/java-lib.version: "latest"
-        #ad.datadoghq.com/server.checks: |
-        #  {
-        #    "jmx": {
-        #      "init_config": {
-        #        "is_jmx": true,
-        #        "collect_default_metrics": true,
-        #        "conf": [{
-        #          "include": {
-        #            "domain": "java.lang",
-        #            "type": "MemoryPool",
-        #            "attribute": {
-        #              "Usage.used": {
-        #                "metric_type": "gauge",
-        #                "alias": "jvm.memory_usage"
-        #                },
-        #              "Usage.committed": {
-        #                "metric_type": "gauge",
-        #                "alias": "jvm.memory_committed"
-        #                }
-        #              }
-        #            }
-        #        }]
-        #      },
-        #      "instances": [{
-        #        "host": "%%host%%",
-        #        "port": "8081",
-        #        "tags": ["pod_name:%%kube_pod_name%%"]
-        #      }]
-        #    }
-        #  }
+        ad.datadoghq.com/server.checks: |
+          {
+            "jmx": {
+              "init_config": {
+                "is_jmx": true,
+                "collect_default_metrics": true,
+                "collect_default_jvm_metrics": true,
+                "new_gc_metrics": true,
+                "conf": [{
+                  "include": {
+                    "domain": "java.lang",
+                    "type": "MemoryPool",
+                    "attribute": {
+                      "Usage.used": {
+                        "metric_type": "gauge",
+                        "alias": "jvm.memory_usage"
+                        },
+                      "Usage.committed": {
+                        "metric_type": "gauge",
+                        "alias": "jvm.memory_committed"
+                        }
+                      }
+                    }
+                }, {
+                  "include": {
+                  "domain": "java.lang",
+                  "type": "Threading",
+                  "attribute": {
+                    "ThreadCount": {
+                     "metric_type": "gauge",
+                     "alias": "jvm.threads.active"
+                      },
+                    "TotalStartedThreadCount": {
+                     "metric_type": "gauge",
+                      "alias": "jvm.threads.total"
+                      }
+              }
+            }
+          }]
+              },
+              "instances": [{
+                "host": "%%host%%",
+                "port": "8081",
+                "tags": ["pod_name:%%kube_pod_name%%"]
+              }]
+            }
+          }
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
@@ -103,12 +120,16 @@ spec:
         #  value: "1"
         - name: DD_INVENTORIES_CONFIGURATION_ENABLED
           value: "true"
+        - name: DD_PROFILING_DIRECTALLOCATION_ENABLED
+          value: "true"
         - name: POD_IP
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        - name: DD_TRACE_SAMPLING_RULES
-          value: '[{"service": "*", "sample_rate": 0.2}]'
+        #- name: DD_TRACE_SAMPLING_RULES
+        #  value: '[{"service": "*", "sample_rate": 0.2}]'
+        - name: DD_RUNTIME_METRICS_ENABLED
+          value: "true"
         - name: JAVA_OPTS
           value: >-
               -Dcom.sun.management.jmxremote
@@ -118,6 +139,7 @@ spec:
               -Dcom.sun.management.jmxremote.port=8081
               -Dcom.sun.management.jmxremote.rmi.port=8081
               -Djava.rmi.server.hostname=$(POD_IP)
+              -Ddd.profiling.directallocation.enabled=true
 
         #- name: DD_ENTITY_ID
         #  valueFrom:

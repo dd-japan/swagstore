@@ -176,11 +176,26 @@ func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+   	// 推奨商品を非同期で取得
+   	var recommendationsChan = make(chan []*pb.Product, 1)
+   	go func() {
+   		recommendations, err := fe.getRecommendations(r.Context(), sessionID(r), []string{id})
+   		if err != nil {
+   			log.WithField("error", err).Warn("failed to get product recommendations")
+   			recommendationsChan <- []*pb.Product{} // エラー時は空のリストを返す
+   		} else {
+   			recommendationsChan <- recommendations
+   		}
+   	}()
+
+   	// 結果を待つ
+   	recommendations := <-recommendationsChan
+
 	// ignores the error retrieving recommendations since it is not critical
-	recommendations, err := fe.getRecommendations(r.Context(), sessionID(r), []string{id})
-	if err != nil {
-		log.WithField("error", err).Warn("failed to get product recommendations")
-	}
+	//recommendations, err := fe.getRecommendations(r.Context(), sessionID(r), []string{id})
+	//if err != nil {
+	//	log.WithField("error", err).Warn("failed to get product recommendations")
+	//}
 
 	product := struct {
 		Item  *pb.Product

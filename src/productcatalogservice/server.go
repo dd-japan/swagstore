@@ -283,10 +283,12 @@ func (p *productCatalog) GetProduct(ctx context.Context, req *pb.GetProductReque
         time.Sleep(11 * time.Second)
     }
 
+    catalog := parseCatalog() // ここで1回だけ呼び出す
 	var found *pb.Product
-	for i := 0; i < len(parseCatalog()); i++ {
-		if req.Id == parseCatalog()[i].Id {
-			found = parseCatalog()[i]
+	for i := 0; i < len(catalog); i++ {
+		if req.Id == catalog[i].Id {
+			found = catalog[i]
+			break // 見つかったらループを抜ける
 		}
 	}
 	if found == nil {

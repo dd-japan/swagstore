@@ -42,8 +42,8 @@ spec:
                           "pattern" : "\\{"
                         }]
           }]
-        #ad.datadoghq.com/tags: '{"git.commit.sha": "ba963843f0b5d1c540ddb6d07103c03a7e2fd7c9",
-        #         "git.repository_url": "https://github.com/dd-japan/swagstore", "git.branch": "prototype-for-kddi"}'
+        ad.datadoghq.com/tags: '{"git.commit.sha": "41b010236b379372e4b8143d2e96f0e2d71c1b9e",
+                 "git.repository_url": "https://github.com/dd-japan/swagstore", "git.branch": "2025-1H"}'
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
