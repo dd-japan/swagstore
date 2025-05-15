@@ -19,7 +19,7 @@ spec:
   selector:
     matchLabels:
       app: loadgenerator
-  replicas: 0
+  replicas: 1
   template:
     metadata:
       labels:
@@ -35,29 +35,30 @@ spec:
         runAsGroup: 1000
         runAsNonRoot: true
         runAsUser: 1000
-      initContainers:
-      - command:
-        - /bin/sh
-        - -exc
-        - |
-          echo "Init container pinging frontend: ${FRONTEND_ADDR}..."
-          STATUSCODE=$(wget --server-response http://${FRONTEND_ADDR} 2>&1 | awk '/^  HTTP/{print $2}')
-          if test $STATUSCODE -ne 200; then
-              echo "Error: Could not reach frontend - Status code: ${STATUSCODE}"
-              exit 1
-          fi
-        name: frontend-check
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - all
-          privileged: false
-          readOnlyRootFilesystem: true
-        image: busybox:latest
-        env:
-        - name: FRONTEND_ADDR
-          value: "frontend:80"
+      # initContainers:
+      # - command:
+      #   - /bin/sh
+      #   - -exc
+      #   - |
+      #     echo "Init container pinging frontend: ${FRONTEND_ADDR}..."
+      #     STATUSCODE=$(wget --server-response http://${FRONTEND_ADDR} 2>&1 | awk '/^  HTTP/{print $2}')
+      #     if test $STATUSCODE -ne 200; then
+      #         echo "Error: Could not reach frontend - Status code: ${STATUSCODE}"
+      #         exit 1
+      #     fi
+      #   name: frontend-check
+      #   securityContext:
+      #     allowPrivilegeEscalation: false
+      #     capabilities:
+      #       drop:
+      #         - all
+      #     privileged: false
+      #     readOnlyRootFilesystem: true
+      #   image: busybox:1.36.1
+      #   env:
+      #   - name: FRONTEND_ADDR
+      #     value: "frontend:80"
+
       containers:
       - name: main
         securityContext:
@@ -67,7 +68,7 @@ spec:
               - all
           privileged: false
           readOnlyRootFilesystem: true
-        image: loadgenerator
+        image: ghcr.io/keisukesakasai/ctf-swagstore/loadgenerator:latest
         env:
         - name: FRONTEND_ADDR
           value: "frontend:80"
